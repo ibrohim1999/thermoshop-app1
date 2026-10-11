@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thermoshop — Отопление и сантехника</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #12181F;
+    --surface: #1B232C;
+    --surface-2: #232D38;
+    --line: #2C3744;
+    --copper: #D4622A;
+    --copper-dim: #B2521F;
+    --teal: #4F8A9C;
+    --text: #F2EFE9;
+    --text-dim: #93A0AC;
+    --text-faint: #5F6B78;
+    --radius: 10px;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html { scroll-padding-top: var(--safe-t); }
+  body {
+    padding-top: var(--safe-t);
+    padding-bottom: var(--safe-b);
+  }
+  h1, h2, h3, .display {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  /* ---------- Header ---------- */
+  .topbar {
+    position: sticky;
+    top: var(--safe-t);
+    z-index: 20;
+    background: rgba(18,24,31,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-mark {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .brand-mark img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .brand-logo {
+    background: #fff;
+    border-radius: 10px;
+    padding: 4px 8px;
+    height: 68px;
+    display: flex; align-items: center;
+  }
+  .brand-logo img { height: 100%; width: auto; display: block; }
+  .brand-name { font-size: 17px; font-weight: 700; font-family: 'Archivo', sans-serif; }
+  .brand-sub { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+
+  .cart-btn {
+    position: relative;
+    width: 40px; height: 40px;
+    border-radius: 9px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .cart-count {
+    position: absolute;
+    top: -6px; right: -6px;
+    background: var(--copper);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 18px; height: 18px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: 22px 18px 8px;
+  }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--teal);
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  .hero-eyebrow .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #5FBF7A;
+  }
+  .hero h1 {
+    font-size: 25px;
+    line-height: 1.25;
+    max-width: 23ch;
+  }
+  .hero p {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 10px 0 0;
+    max-width: 38ch;
+  }
+
+  /* ---------- Category pills ---------- */
+  .cats {
+    display: flex;
+    gap: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .cats::-webkit-scrollbar { display: none; }
+  .pill {
+    flex-shrink: 0;
+    padding: 8px 15px;
+    border-radius: 100px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .pill.active {
+    background: var(--copper);
+    border-color: var(--copper);
+    color: #fff;
+  }
+
+  /* ---------- Product grid ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 4px 18px 18px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-art {
+    aspect-ratio: 1.2;
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--teal);
+    border-bottom: 1px solid var(--line);
+  }
+  .card-art svg { width: 44%; height: 44%; }
+  .card-body { padding: 11px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .card-brand { font-size: 10.5px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.04em; }
+  .card-name { font-size: 13.5px; font-weight: 600; line-height: 1.3; min-height: 2.6em; }
+  .card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .card-price { font-size: 14.5px; font-weight: 700; font-family: 'Archivo', sans-serif; }
+  .add-btn {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: var(--copper);
+    color: #fff;
+    border: none;
+    font-size: 18px;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .add-btn.in-cart { background: var(--teal); }
+
+  /* ---------- Contact strip ---------- */
+  .contact-strip {
+    margin: 10px 18px 24px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .contact-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-dim); }
+  .contact-row svg { width: 16px; height: 16px; color: var(--teal); flex-shrink: 0; }
+
+  /* ---------- Cart drawer ---------- */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 30;
+  }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    max-height: 82vh;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    border-radius: 18px 18px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    z-index: 31;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: calc(var(--safe-b) + 14px);
+  }
+  .drawer.open { transform: translateY(0); }
+  .drawer-handle { width: 36px; height: 4px; background: var(--line); border-radius: 2px; margin: 10px auto 2px; }
+  .drawer-head { padding: 10px 18px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+  .drawer-items { overflow-y: auto; padding: 8px 18px; flex: 1; }
+  .cart-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .cart-row:last-child { border-bottom: none; }
+  .cart-row-name { font-size: 13.5px; font-weight: 600; flex: 1; }
+  .cart-row-price { font-size: 12.5px; color: var(--text-dim); }
+  .qty-ctrl { display: flex; align-items: center; gap: 8px; }
+  .qty-btn {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
+    font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .qty-val { font-size: 13px; font-weight: 600; min-width: 16px; text-align: center; }
+
+  .drawer-empty { padding: 40px 18px; text-align: center; color: var(--text-faint); font-size: 13.5px; }
+
+  .drawer-foot { padding: 14px 18px 4px; border-top: 1px solid var(--line); }
+  .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .total-label { font-size: 13px; color: var(--text-dim); }
+  .total-val { font-size: 19px; font-weight: 700; font-family: 'Archivo', sans-serif; }
+  .checkout-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius);
+    background: var(--copper);
+    color: #fff;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+  }
+  .checkout-btn:disabled { background: var(--surface-2); color: var(--text-faint); }
+
+  .note {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 11.5px;
+    padding: 10px 24px 4px;
+  }
+
+  .card { cursor: pointer; }
+  .card-art.has-img { background: #fff; padding: 6px; }
+  .card-art.has-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    max-height: 90vh;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    border-radius: 18px 18px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    z-index: 41;
+    display: flex; flex-direction: column;
+    padding-bottom: calc(var(--safe-b) + 14px);
+  }
+  .sheet.open { transform: translateY(0); }
+  .sheet-overlay { z-index: 40; }
+  .sheet-scroll { overflow-y: auto; padding: 0 18px 8px; }
+  .sheet-img { background: #fff; border-radius: var(--radius); padding: 10px; margin-top: 4px; }
+  .sheet-img img { width: 100%; max-height: 240px; object-fit: contain; display: block; }
+  .sheet-img.icon { background: var(--surface-2); color: var(--teal); display: flex; justify-content: center; padding: 28px; }
+  .sheet-img.icon svg { width: 90px; height: 90px; }
+  .sheet-brand { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 14px; }
+  .sheet-name { font-size: 19px; margin-top: 4px; line-height: 1.25; }
+  .sheet-price { font-size: 22px; font-weight: 700; font-family: 'Archivo', sans-serif; color: var(--copper); margin-top: 8px; }
+  .specs { margin-top: 14px; border-top: 1px solid var(--line); }
+  .spec-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .spec-row span:first-child { color: var(--text-dim); flex: 1.1; }
+  .spec-row span:last-child { text-align: right; flex: 1; font-weight: 500; }
+  .sheet-foot { padding: 12px 18px 0; border-top: 1px solid var(--line); }
+
+  .splash {
+    position: fixed; inset: 0; z-index: 100;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    animation: splash-out 0.45s ease 1.1s forwards;
+  }
+  .splash img { width: min(46vw, 200px); height: auto; animation: splash-in 0.5s ease both; }
+  @keyframes splash-in { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+  @keyframes splash-out { to { opacity: 0; visibility: hidden; } }
+
+  .top-actions { display: flex; align-items: center; gap: 8px; }
+  .lang-btn {
+    height: 40px; min-width: 46px; padding: 0 11px;
+    border-radius: 9px; background: var(--surface-2); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    font-size: 13px; font-weight: 700; font-family: 'Archivo', sans-serif; cursor: pointer;
+  }
+  .lang-btn svg { width: 14px; height: 14px; color: var(--teal); }
+  .lang-list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .lang-opt { display: flex; align-items: center; justify-content: space-between; padding: 15px 16px; font-size: 15px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .lang-opt:last-child { border-bottom: none; }
+  .lang-opt .tick { color: var(--copper); font-weight: 700; visibility: hidden; }
+  .lang-opt.sel .tick { visibility: visible; }
+
+
+  /* ---------- Ro'yxatdan o'tish ---------- */
+  .banner { margin-top: 6px; padding: 14px 14px 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); display: flex; align-items: center; gap: 12px; }
+  .banner-text { flex: 1; min-width: 0; }
+  .banner-title { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+  .banner-sub { font-size: 12px; color: var(--text-dim); margin-top: 3px; line-height: 1.4; overflow-wrap: anywhere; }
+  .banner-btn { padding: 10px 16px; border-radius: 9px; background: var(--copper); color: #fff; border: none; font-weight: 600; font-size: 13.5px; font-family: inherit; cursor: pointer; flex-shrink: 0; }
+  .banner-btn.ghost { background: var(--surface-2); border: 1px solid var(--line); color: var(--text); }
+  .field { display: block; margin-top: 14px; }
+  .field > span { display: block; font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px; }
+  .field input, .field textarea { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; color: var(--text); font-size: 16px; padding: 13px 14px; font-family: inherit; outline: none; resize: none; }
+  .field input:focus, .field textarea:focus { border-color: var(--copper); }
+  .phone-wrap { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding-left: 14px; }
+  .phone-wrap:focus-within { border-color: var(--copper); }
+  .phone-wrap .cc { font-size: 16px; color: var(--text-dim); padding-right: 8px; white-space: nowrap; }
+  .phone-wrap input { border: none; background: transparent; padding-left: 0; }
+  .geo-btn { margin-top: 12px; width: 100%; padding: 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); color: var(--text); font-size: 14px; font-family: inherit; cursor: pointer; }
+  .geo-btn.done { border-color: var(--teal); color: var(--teal); }
+  .consent { display: flex; align-items: center; gap: 10px; margin-top: 16px; font-size: 13px; color: var(--text-dim); }
+  .consent input { width: 20px; height: 20px; accent-color: var(--copper); flex-shrink: 0; }
+  .reg-err { color: #E5736A; font-size: 13px; margin-top: 12px; min-height: 1em; }
+  .reg-sub { color: var(--text-dim); font-size: 13.5px; margin: 0; line-height: 1.45; }
+  .deliv { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--text-dim); line-height: 1.45; margin-bottom: 12px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-wrap: anywhere; }
+  .deliv b { color: var(--text); font-weight: 600; }
+  .deliv a { color: var(--copper); cursor: pointer; flex-shrink: 0; font-weight: 600; }
+
+  /* ---------- Keng ekranlar (kompyuter) ---------- */
+  .hero, .cats, .grid { max-width: 1000px; margin-left: auto; margin-right: auto; }
+  .contact-strip, .banner { width: calc(100% - 36px); max-width: 964px; margin-left: auto; margin-right: auto; }
+  .topbar { padding-left: max(18px, calc((100vw - 1000px) / 2 + 18px)); padding-right: max(18px, calc((100vw - 1000px) / 2 + 18px)); }
+  @media (min-width: 600px) {
+    .grid { grid-template-columns: repeat(3, 1fr); }
+    .drawer, .sheet { left: 50%; right: auto; width: 520px; transform: translate(-50%, 100%); }
+    .drawer.open, .sheet.open { transform: translate(-50%, 0); }
+  }
+  @media (min-width: 900px) {
+    .grid { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="splash"><img src="images/logo.png" alt="Thermoshop"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo"><img src="images/logo.png" alt="Thermoshop"></div>
+  </div>
+  <div class="top-actions">
+  <div class="lang-btn" id="langBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg><span id="langCode">RU</span></div>
+  <div class="cart-btn" id="cartBtn">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#F2EFE9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+    <span class="cart-count" id="cartCount" style="display:none">0</span>
+  </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow"><span class="dot"></span> <span data-i18n="hours"></span></div>
+  <h1 data-i18n="h1"></h1>
+  <p data-i18n="sub"></p>
+</section>
+
+<div class="banner" id="profileBanner"></div>
+
+<nav class="cats" id="cats"></nav>
+<div class="grid" id="grid"></div>
+
+<div class="contact-strip">
+  <div class="contact-row">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    +998 90 902 88 33 · +998 90 902 44 99
+  </div>
+  <div class="contact-row">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span data-i18n="address"></span>
+  </div>
+</div>
+
+<div class="overlay sheet-overlay" id="sheetOverlay"></div>
+<div class="sheet" id="sheet">
+  <div class="drawer-handle"></div>
+  <div class="sheet-scroll" id="sheetBody"></div>
+  <div class="sheet-foot"><button class="checkout-btn" id="sheetAdd" data-i18n="add_cart"></button></div>
+</div>
+
+<div class="overlay sheet-overlay" id="regOverlay"></div>
+<div class="sheet" id="regSheet">
+  <div class="drawer-handle"></div>
+  <div class="sheet-scroll">
+    <h3 style="font-size:19px;margin:12px 0 6px" data-i18n="reg_title"></h3>
+    <p class="reg-sub" data-i18n="reg_sub"></p>
+    <label class="field"><span data-i18n="f_name"></span><input id="fName" type="text" autocomplete="name" maxlength="60" data-i18n-ph="ph_name"></label>
+    <label class="field"><span data-i18n="f_phone"></span>
+      <div class="phone-wrap"><span class="cc">+998</span><input id="fPhone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="12" placeholder="90 123 45 67"></div>
+    </label>
+    <label class="field"><span data-i18n="f_addr"></span><textarea id="fAddr" rows="2" maxlength="200" data-i18n-ph="ph_addr"></textarea></label>
+    <button class="geo-btn" id="geoBtn" type="button" data-i18n="geo"></button>
+    <label class="consent"><input type="checkbox" id="fConsent"><span data-i18n="consent"></span></label>
+    <div class="reg-err" id="regErr"></div>
+  </div>
+  <div class="sheet-foot"><button class="checkout-btn" id="regSave" data-i18n="cont"></button></div>
+</div>
+
+<div class="overlay sheet-overlay" id="langOverlay"></div>
+<div class="sheet" id="langSheet">
+  <div class="drawer-handle"></div>
+  <div class="sheet-scroll">
+    <h3 style="font-size:17px;margin:12px 0 12px" data-i18n="lang_title"></h3>
+    <div class="lang-list" id="langList"></div>
+  </div>
+  <div class="sheet-foot"><button class="checkout-btn" id="langSave" data-i18n="save"></button></div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-head">
+    <h3 style="font-size:16px" data-i18n="cart"></h3>
+    <div class="cart-btn" id="closeDrawer" style="width:32px;height:32px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F2EFE9" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </div>
+  </div>
+  <div class="drawer-items" id="drawerItems"></div>
+  <div class="drawer-foot">
+    <div class="deliv" id="delivInfo" style="display:none"></div>
+    <div class="total-row">
+      <span class="total-label" data-i18n="total"></span>
+      <span class="total-val" id="totalVal">0 сум</span>
+    </div>
+    <button class="checkout-btn" id="checkoutBtn" data-i18n="checkout" disabled></button>
+    <div class="note" data-i18n="note"></div>
+  </div>
+</div>
+
+<script src="products.js"></script>
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) {
+  tg.ready(); tg.expand();
+  try { tg.setHeaderColor('#ffffff'); tg.setBackgroundColor('#ffffff'); } catch (e) {}
+  setTimeout(() => { try { tg.setHeaderColor('#12181F'); tg.setBackgroundColor('#12181F'); } catch (e) {} }, 1100);
+}
+
+// ---------------- ПРИМЕРНЫЕ ТОВАРЫ — замените на реальные ----------------
+const ICONS = {
+  heater: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M9 7h6M9 11h6M9 15h6"/></svg>`,
+  boiler: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="9" cy="8" r="1.4"/><circle cx="15" cy="8" r="1.4"/><path d="M7 13h10M7 17h6"/></svg>`,
+  pump: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="13" r="7"/><path d="M12 6V2M9 2h6M9 13l2-3 2 5 2-2"/></svg>`,
+};
+
+// Mahsulotlar products.js faylida
+// ---------------------------------------------------------------------------
+
+const I18N = {
+  ru: {
+    hours: 'Работаем сегодня, 9:00–18:00',
+    h1: 'Котлы, насосы и водонагреватели с доставкой по Ташкенту',
+    sub: 'Оригинальные Ariston, Grundfos, DAB, Navien и другие бренды. Выберите товар — оформим заказ прямо здесь.',
+    address: 'Ташкент, Алмазарский район, ул. Ширака, 2',
+    cat_all: 'Все товары', cat_heaters: 'Водонагреватели', cat_boilers: 'Котлы', cat_pumps: 'Насосы',
+    cart: 'Корзина', total: 'Итого', checkout: 'Оформить заказ', add_cart: 'В корзину',
+    note: 'Заказ будет отправлен менеджеру в Telegram',
+    empty: 'Корзина пока пуста.<br>Добавьте товары из каталога.',
+    cur: 'сум', sending: 'Отправляем...', lang_title: 'Язык', save: 'Сохранить',
+    ok: 'Заказ принят! Скоро с вами свяжется менеджер.',
+    fail: 'Не удалось отправить заказ. Попробуйте ещё раз или позвоните: +998 90 902 88 33',
+    reg_title: 'Регистрация', reg_sub: 'Укажите данные для доставки заказа',
+    f_name: 'Имя', ph_name: 'Как к вам обращаться', f_phone: 'Номер телефона',
+    f_addr: 'Адрес доставки', ph_addr: 'Район, улица, дом, ориентир',
+    geo: '📍 Отправить геолокацию', geo_done: '✓ Геолокация добавлена', geo_fail: 'Не удалось определить местоположение',
+    consent: 'Я согласен с пользовательским соглашением', cont: 'Продолжить',
+    b_title: 'Войдите, чтобы оформить заказ', b_sub: 'Укажите имя, телефон и адрес доставки', b_btn: 'Войти', edit: 'Изменить',
+    e_name: 'Введите имя', e_phone: 'Введите номер полностью', e_addr: 'Укажите адрес доставки', e_consent: 'Необходимо согласие',
+    o_client: 'Клиент', o_phone: 'Телефон', o_addr: 'Адрес', o_geo: 'Геолокация',
+  },
+  uz: {
+    hours: 'Bugun ishlaymiz, 9:00–18:00',
+    h1: "Qozonlar, nasoslar va suv isitgichlar Toshkent bo'ylab yetkazib berish bilan",
+    sub: "Original Ariston, Grundfos, DAB, Navien va boshqa brendlar. Mahsulotni tanlang — buyurtmani shu yerning o'zida rasmiylashtiramiz.",
+    address: "Toshkent, Olmazor tumani, Shiroq ko'chasi, 2-uy",
+    cat_all: 'Barcha mahsulotlar', cat_heaters: 'Suv isitgichlar', cat_boilers: 'Qozonlar', cat_pumps: 'Nasoslar',
+    cart: 'Savat', total: 'Jami', checkout: 'Buyurtma berish', add_cart: 'Savatga',
+    note: 'Buyurtma Telegram orqali menejerga yuboriladi',
+    empty: "Savat hozircha bo'sh.<br>Katalogdan mahsulot qo'shing.",
+    cur: "so'm", sending: 'Yuborilmoqda...', lang_title: 'Til', save: 'Saqlash',
+    ok: "Buyurtma qabul qilindi! Tez orada menejer siz bilan bog'lanadi.",
+    fail: "Buyurtmani yuborib bo'lmadi. Qayta urinib ko'ring yoki qo'ng'iroq qiling: +998 90 902 88 33",
+    reg_title: "Ro'yxatdan o'tish", reg_sub: "Buyurtmani yetkazib berish uchun ma'lumotlarni kiriting",
+    f_name: 'Ism', ph_name: 'Ismingiz', f_phone: 'Telefon raqami',
+    f_addr: 'Yetkazib berish manzili', ph_addr: "Tuman, ko'cha, uy, mo'ljal",
+    geo: '📍 Joylashuvni yuborish', geo_done: "✓ Joylashuv qo'shildi", geo_fail: "Joylashuvni aniqlab bo'lmadi",
+    consent: 'Foydalanuvchi shartnomasiga roziman', cont: 'Davom etish',
+    b_title: "Buyurtma uchun ro'yxatdan o'ting", b_sub: "Ism, telefon va yetkazib berish manzilini kiriting", b_btn: 'Kirish', edit: 'Tahrirlash',
+    e_name: 'Ismingizni kiriting', e_phone: "Telefon raqamini to'liq kiriting", e_addr: 'Manzilni kiriting', e_consent: 'Rozilik kerak',
+    o_client: 'Клиент', o_phone: 'Телефон', o_addr: 'Адрес', o_geo: 'Геолокация',
+  },
+  en: {
+    hours: 'Open today, 9:00–18:00',
+    h1: 'Boilers, pumps and water heaters delivered across Tashkent',
+    sub: 'Original Ariston, Grundfos, DAB, Navien and other brands. Pick a product and place your order right here.',
+    address: '2 Shiraq St, Olmazor district, Tashkent',
+    cat_all: 'All products', cat_heaters: 'Water heaters', cat_boilers: 'Boilers', cat_pumps: 'Pumps',
+    cart: 'Cart', total: 'Total', checkout: 'Place order', add_cart: 'Add to cart',
+    note: 'Your order will be sent to the manager in Telegram',
+    empty: 'Your cart is empty.<br>Add items from the catalog.',
+    cur: 'UZS', sending: 'Sending...', lang_title: 'Language', save: 'Save',
+    ok: 'Order received! A manager will contact you soon.',
+    fail: "Couldn't send the order. Try again or call: +998 90 902 88 33",
+    reg_title: 'Sign up', reg_sub: 'Enter your details for order delivery',
+    f_name: 'Name', ph_name: 'Your name', f_phone: 'Phone number',
+    f_addr: 'Delivery address', ph_addr: 'District, street, house, landmark',
+    geo: '📍 Share my location', geo_done: '✓ Location added', geo_fail: "Couldn't get your location",
+    consent: 'I agree to the terms of use', cont: 'Continue',
+    b_title: 'Sign up to place an order', b_sub: 'Add your name, phone and delivery address', b_btn: 'Sign up', edit: 'Edit',
+    e_name: 'Enter your name', e_phone: 'Enter the full phone number', e_addr: 'Enter your delivery address', e_consent: 'Consent is required',
+    o_client: 'Клиент', o_phone: 'Телефон', o_addr: 'Адрес', o_geo: 'Геолокация',
+  },
+};
+const LANGS = [
+  { id: 'uz', label: "O'zbek tili", short: 'UZ' },
+  { id: 'ru', label: 'Русский язык', short: 'RU' },
+  { id: 'en', label: 'English', short: 'EN' },
+];
+function detectLang() {
+  try { const sv = localStorage.getItem('ts_lang'); if (sv && I18N[sv]) return sv; } catch (e) {}
+  const c = ((tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) || navigator.language || 'ru').toLowerCase();
+  if (c.startsWith('uz')) return 'uz';
+  if (c.startsWith('en')) return 'en';
+  return 'ru';
+}
+let lang = detectLang();
+const t = (k) => (I18N[lang] && I18N[lang][k]) || I18N.ru[k] || k;
+const trL = (x, l) => (x && typeof x === 'object') ? (x[l] || x.ru || '') : x;
+const tr = (x) => trL(x, lang);
+
+const CATS = [
+  { id: 'all' }, { id: 'heaters' }, { id: 'boilers' }, { id: 'pumps' },
+];
+
+// Railway'dagi bot havolasi (oxirida / belgisiz). Masalan: https://thermoshop-app1-production.up.railway.app
+const API_URL = 'https://thermoshop-app1-production.up.railway.app';
+
+let activeCat = 'all';
+let cart = {}; // id -> qty
+
+function fmt(n) { return n.toLocaleString('ru-RU') + ' ' + t('cur'); }
+
+function renderCats() {
+  const el = document.getElementById('cats');
+  el.innerHTML = CATS.map(c =>
+    `<div class="pill ${c.id === activeCat ? 'active' : ''}" data-cat="${c.id}">${t('cat_' + c.id)}</div>`
+  ).join('');
+  el.querySelectorAll('.pill').forEach(p => p.onclick = () => { activeCat = p.dataset.cat; renderCats(); renderGrid(); });
+}
+
+function renderGrid() {
+  const el = document.getElementById('grid');
+  const items = PRODUCTS.filter(p => activeCat === 'all' || p.cat === activeCat);
+  el.innerHTML = items.map(p => `
+    <div class="card" data-card="${p.id}">
+      <div class="card-art ${p.img ? 'has-img' : ''}">${p.img ? `<img src="${p.img}" alt="${tr(p.name)}" loading="lazy">` : ICONS[p.icon]}</div>
+      <div class="card-body">
+        <div class="card-brand">${p.brand}</div>
+        <div class="card-name">${tr(p.name)}</div>
+        <div class="card-foot">
+          <div class="card-price">${fmt(p.price)}</div>
+          <button class="add-btn ${cart[p.id] ? 'in-cart' : ''}" data-id="${p.id}">${cart[p.id] ? '✓' : '+'}</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  el.querySelectorAll('.card').forEach(c => c.onclick = () => openSheet(Number(c.dataset.card)));
+  el.querySelectorAll('.add-btn').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    const id = Number(b.dataset.id);
+    cart[id] = (cart[id] || 0) + 1;
+    renderGrid(); renderCartUI();
+    if (tg) tg.HapticFeedback.impactOccurred('light');
+  });
+}
+
+function cartTotal() {
+  return Object.entries(cart).reduce((sum, [id, qty]) => {
+    const p = PRODUCTS.find(x => x.id === Number(id));
+    return sum + (p ? p.price * qty : 0);
+  }, 0);
+}
+function cartCount() {
+  return Object.values(cart).reduce((a, b) => a + b, 0);
+}
+
+function renderCartUI() {
+  const count = cartCount();
+  const countEl = document.getElementById('cartCount');
+  countEl.style.display = count ? 'flex' : 'none';
+  countEl.textContent = count;
+
+  const itemsEl = document.getElementById('drawerItems');
+  const entries = Object.entries(cart).filter(([,q]) => q > 0);
+  if (!entries.length) {
+    itemsEl.innerHTML = `<div class="drawer-empty">${t('empty')}</div>`;
+  } else {
+    itemsEl.innerHTML = entries.map(([id, qty]) => {
+      const p = PRODUCTS.find(x => x.id === Number(id));
+      return `
+        <div class="cart-row">
+          <div style="flex:1">
+            <div class="cart-row-name">${tr(p.name)}</div>
+            <div class="cart-row-price">${fmt(p.price)}</div>
+          </div>
+          <div class="qty-ctrl">
+            <button class="qty-btn" data-act="dec" data-id="${id}">−</button>
+            <span class="qty-val">${qty}</span>
+            <button class="qty-btn" data-act="inc" data-id="${id}">+</button>
+          </div>
+        </div>`;
+    }).join('');
+    itemsEl.querySelectorAll('.qty-btn').forEach(b => b.onclick = () => {
+      const id = b.dataset.id;
+      if (b.dataset.act === 'inc') cart[id] = (cart[id] || 0) + 1;
+      else { cart[id] = (cart[id] || 0) - 1; if (cart[id] <= 0) delete cart[id]; }
+      renderGrid(); renderCartUI();
+    });
+  }
+
+  document.getElementById('totalVal').textContent = fmt(cartTotal());
+  document.getElementById('checkoutBtn').disabled = !entries.length;
+}
+
+// Drawer open/close
+const overlay = document.getElementById('overlay');
+const drawer = document.getElementById('drawer');
+function openDrawer() { overlay.classList.add('open'); drawer.classList.add('open'); }
+function closeDrawer() { overlay.classList.remove('open'); drawer.classList.remove('open'); }
+document.getElementById('cartBtn').onclick = openDrawer;
+document.getElementById('closeDrawer').onclick = closeDrawer;
+overlay.onclick = closeDrawer;
+
+// Checkout → send order to bot via Telegram WebApp, or fallback link
+document.getElementById('checkoutBtn').onclick = () => {
+  const entries = Object.entries(cart).filter(([,q]) => q > 0);
+  if (!entries.length) return;
+  if (!profile) { openReg(() => document.getElementById('checkoutBtn').click()); return; }
+  const lines = entries.map(([id, qty]) => {
+    const p = PRODUCTS.find(x => x.id === Number(id));
+    return `${trL(p.name, 'ru')} × ${qty} — ${p.price * qty} сум`;
+  });
+  const geoLine = profile.geo ? `\nГеолокация: https://maps.google.com/?q=${profile.geo.lat},${profile.geo.lon}` : '';
+  const orderText = `Новый заказ Thermoshop:\n\nКлиент: ${profile.name}\nТелефон: +998${profile.phone}\nАдрес: ${profile.address}${geoLine}\n\n${lines.join('\n')}\n\nИтого: ${cartTotal()} сум\nЯзык клиента: ${lang}`;
+
+  const payload = { items: entries.map(([id, qty]) => ({ id: Number(id), qty })), total: cartTotal(), text: orderText };
+  const btn = document.getElementById('checkoutBtn');
+
+  if (tg && tg.initData && API_URL) {
+    btn.disabled = true; btn.textContent = t('sending');
+    fetch(API_URL + '/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData: tg.initData, text: orderText }),
+    }).then(r => {
+      if (!r.ok) throw new Error('bad status');
+      cart = {}; renderGrid(); renderCartUI(); closeDrawer();
+      tg.showAlert(t('ok'), () => tg.close());
+    }).catch(() => {
+      btn.disabled = false; btn.textContent = t('checkout');
+      tg.showAlert(t('fail'));
+    });
+  } else if (tg && tg.sendData) {
+    tg.sendData(JSON.stringify(payload));
+    tg.close();
+  } else {
+    const url = 'https://t.me/share/url?url=&text=' + encodeURIComponent(orderText);
+    window.open(url, '_blank');
+  }
+};
+
+// ---- Mahsulot oynasi (xususiyatlar)
+const sheet = document.getElementById('sheet');
+const sheetOverlay = document.getElementById('sheetOverlay');
+let sheetId = null;
+function openSheet(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+  sheetId = id;
+  const specs = (p.specs || []).map(([k, v]) => `<div class="spec-row"><span>${tr(k)}</span><span>${tr(v)}</span></div>`).join('');
+  document.getElementById('sheetBody').innerHTML = `
+    ${p.img ? `<div class="sheet-img"><img src="${p.img}" alt="${tr(p.name)}"></div>` : `<div class="sheet-img icon">${ICONS[p.icon]}</div>`}
+    <div class="sheet-brand">${p.brand}</div>
+    <h2 class="sheet-name">${tr(p.name)}</h2>
+    <div class="sheet-price">${fmt(p.price)}</div>
+    ${specs ? `<div class="specs">${specs}</div>` : ''}`;
+  sheetOverlay.classList.add('open'); sheet.classList.add('open');
+}
+function closeSheet() { sheetOverlay.classList.remove('open'); sheet.classList.remove('open'); }
+sheetOverlay.onclick = closeSheet;
+document.getElementById('sheetAdd').onclick = () => {
+  cart[sheetId] = (cart[sheetId] || 0) + 1;
+  renderGrid(); renderCartUI(); closeSheet();
+  if (tg) tg.HapticFeedback.impactOccurred('light');
+};
+
+// ---- Til tanlash
+const langSheet = document.getElementById('langSheet');
+const langOverlay = document.getElementById('langOverlay');
+let pendingLang = lang;
+function renderLangOptions() {
+  const list = document.getElementById('langList');
+  list.innerHTML = LANGS.map(l => `<div class="lang-opt ${l.id === pendingLang ? 'sel' : ''}" data-l="${l.id}"><span>${l.label}</span><span class="tick">✓</span></div>`).join('');
+  list.querySelectorAll('.lang-opt').forEach(o => o.onclick = () => { pendingLang = o.dataset.l; renderLangOptions(); });
+}
+function openLang() { pendingLang = lang; renderLangOptions(); langOverlay.classList.add('open'); langSheet.classList.add('open'); }
+function closeLang() { langOverlay.classList.remove('open'); langSheet.classList.remove('open'); }
+document.getElementById('langBtn').onclick = openLang;
+langOverlay.onclick = closeLang;
+document.getElementById('langSave').onclick = () => {
+  lang = pendingLang;
+  try { localStorage.setItem('ts_lang', lang); } catch (e) {}
+  applyLang(); closeLang();
+};
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+  document.getElementById('langCode').textContent = LANGS.find(l => l.id === lang).short;
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  renderCats(); renderGrid(); renderCartUI(); renderProfileUI();
+  if (sheet.classList.contains('open') && sheetId) openSheet(sheetId);
+}
+// ---- Profil (ro'yxatdan o'tish)
+const esc = (v) => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function loadProfile() {
+  try {
+    const p = JSON.parse(localStorage.getItem('ts_profile') || 'null');
+    return p && p.name && p.phone && p.address ? p : null;
+  } catch (e) { return null; }
+}
+let profile = loadProfile();
+function fmtPhone(d) { return [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean).join(' '); }
+
+const regSheet = document.getElementById('regSheet');
+const regOverlay = document.getElementById('regOverlay');
+let afterReg = null, geoTmp = null;
+
+function openReg(cb) {
+  afterReg = cb || null;
+  const tu = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+  document.getElementById('fName').value = profile ? profile.name : (tu && tu.first_name) || '';
+  document.getElementById('fPhone').value = profile ? fmtPhone(profile.phone) : '';
+  document.getElementById('fAddr').value = profile ? profile.address : '';
+  document.getElementById('fConsent').checked = !!profile;
+  document.getElementById('regErr').textContent = '';
+  geoTmp = profile && profile.geo ? profile.geo : null;
+  const gb = document.getElementById('geoBtn');
+  gb.classList.toggle('done', !!geoTmp); gb.textContent = geoTmp ? t('geo_done') : t('geo');
+  regOverlay.classList.add('open'); regSheet.classList.add('open');
+}
+function closeReg() { regOverlay.classList.remove('open'); regSheet.classList.remove('open'); afterReg = null; }
+regOverlay.onclick = closeReg;
+
+document.getElementById('fPhone').oninput = (e) => {
+  e.target.value = fmtPhone(e.target.value.replace(/\D/g, '').slice(0, 9));
+};
+document.getElementById('geoBtn').onclick = () => {
+  const gb = document.getElementById('geoBtn');
+  if (!navigator.geolocation) { document.getElementById('regErr').textContent = t('geo_fail'); return; }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      geoTmp = { lat: +pos.coords.latitude.toFixed(6), lon: +pos.coords.longitude.toFixed(6) };
+      gb.classList.add('done'); gb.textContent = t('geo_done');
+      document.getElementById('regErr').textContent = '';
+    },
+    () => { document.getElementById('regErr').textContent = t('geo_fail'); },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+};
+['fName', 'fPhone', 'fAddr', 'fConsent'].forEach(id => document.getElementById(id).addEventListener('input', () => { document.getElementById('regErr').textContent = ''; }));
+document.getElementById('regSave').onclick = () => {
+  const name = document.getElementById('fName').value.trim();
+  const phone = document.getElementById('fPhone').value.replace(/\D/g, '');
+  const address = document.getElementById('fAddr').value.trim();
+  const err = document.getElementById('regErr');
+  if (name.length < 2) { err.textContent = t('e_name'); return; }
+  if (phone.length !== 9) { err.textContent = t('e_phone'); return; }
+  if (address.length < 5) { err.textContent = t('e_addr'); return; }
+  if (!document.getElementById('fConsent').checked) { err.textContent = t('e_consent'); return; }
+  profile = { name, phone, address, geo: geoTmp };
+  try { localStorage.setItem('ts_profile', JSON.stringify(profile)); } catch (e) {}
+  const cb = afterReg;
+  closeReg(); renderProfileUI();
+  if (tg) tg.HapticFeedback.notificationOccurred('success');
+  if (cb) cb();
+};
+
+function renderProfileUI() {
+  const b = document.getElementById('profileBanner');
+  if (!profile) {
+    b.innerHTML = `<div class="banner-text"><div class="banner-title">${t('b_title')}</div><div class="banner-sub">${t('b_sub')}</div></div><button class="banner-btn" id="bannerBtn">${t('b_btn')}</button>`;
+  } else {
+    b.innerHTML = `<div class="banner-text"><div class="banner-title">${esc(profile.name)}</div><div class="banner-sub">+998 ${fmtPhone(profile.phone)} · ${esc(profile.address)}</div></div><button class="banner-btn ghost" id="bannerBtn">${t('edit')}</button>`;
+  }
+  document.getElementById('bannerBtn').onclick = () => openReg();
+  const d = document.getElementById('delivInfo');
+  if (profile) {
+    d.style.display = 'flex';
+    d.innerHTML = `<div><b>${esc(profile.name)}</b> · +998 ${fmtPhone(profile.phone)}<br>${esc(profile.address)}</div><a id="delivEdit">${t('edit')}</a>`;
+    document.getElementById('delivEdit').onclick = () => openReg();
+  } else { d.style.display = 'none'; d.innerHTML = ''; }
+}
+
+applyLang();
+</script>
+</body>
+</html>
